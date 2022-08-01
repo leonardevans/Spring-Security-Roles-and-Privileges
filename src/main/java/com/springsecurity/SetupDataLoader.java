@@ -38,25 +38,39 @@ public class SetupDataLoader implements
     @Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        Privilege readPrivilege
+                = createPrivilegeIfNotFound("READ_PRIVILEGE");
+        Privilege writePrivilege
+                = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
 
-        if (userRepository.findByEmail("test@test.com") == null){
-            Privilege readPrivilege
-                    = createPrivilegeIfNotFound("READ_PRIVILEGE");
-            Privilege writePrivilege
-                    = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
+        List<Privilege> adminPrivileges = Arrays.asList(
+                readPrivilege, writePrivilege);
 
-            List<Privilege> adminPrivileges = Arrays.asList(
-                    readPrivilege, writePrivilege);
-            createRoleIfNotFound("ROLE_ADMIN", adminPrivileges);
-            createRoleIfNotFound("ROLE_USER", Arrays.asList(readPrivilege));
+        createRoleIfNotFound("ROLE_ADMIN", adminPrivileges);
+        createRoleIfNotFound("ROLE_USER", Arrays.asList(readPrivilege));
+
+        if (userRepository.findByEmail("admin@test.com") == null){
 
             Role adminRole = roleRepository.findByName("ROLE_ADMIN");
             User user = new User();
-            user.setFirstName("Test");
+            user.setFirstName("Admin");
             user.setLastName("Test");
             user.setPassword(passwordEncoder.encode("test"));
-            user.setEmail("test@test.com");
+            user.setEmail("admin@test.com");
             user.setRoles(Arrays.asList(adminRole));
+            user.setEnabled(true);
+            userRepository.save(user);
+        }
+
+        if (userRepository.findByEmail("user@test.com") == null){
+
+            Role userRole = roleRepository.findByName("ROLE_USER");
+            User user = new User();
+            user.setFirstName("User");
+            user.setLastName("Test");
+            user.setPassword(passwordEncoder.encode("test"));
+            user.setEmail("user@test.com");
+            user.setRoles(Arrays.asList(userRole));
             user.setEnabled(true);
             userRepository.save(user);
         }
