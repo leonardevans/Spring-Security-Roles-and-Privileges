@@ -5,6 +5,7 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -23,28 +24,17 @@ import static org.springframework.security.config.Customizer.withDefaults;
         prePostEnabled = true
 )
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+//removed WebSecurityConfigurerAdapter since it's now deprecated
+//public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig{
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeRequests()
-//                .antMatchers("/login").permitAll()
-//                .and()
-//                .formLogin().loginPage("/login").defaultSuccessUrl("/").permitAll()
-//                .and()
-//                .httpBasic(withDefaults());
-//        return http.build();
-//    }
-
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-//        super.configure(http);
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors()
                 .and()
                 .csrf().disable()
@@ -57,7 +47,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin().loginPage("/login").defaultSuccessUrl("/").permitAll()
                 .and()
                 .logout().invalidateHttpSession(true).clearAuthentication(true).logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login?logout").permitAll();
+        return http.build();
     }
+
+//    we use this method when we extend the WebSecurityConfigurerAdapter class
+//    @Override
+//    protected void configure(HttpSecurity http) throws Exception {
+////        super.configure(http);
+//        http.cors()
+//                .and()
+//                .csrf().disable()
+//                .exceptionHandling()
+//                .and()
+//                .authorizeRequests()
+//                .antMatchers("/login").permitAll()
+//                .anyRequest().authenticated()
+//                .and()
+//                .formLogin().loginPage("/login").defaultSuccessUrl("/").permitAll()
+//                .and()
+//                .logout().invalidateHttpSession(true).clearAuthentication(true).logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login?logout").permitAll();
+//    }
 
     @Bean
     public RoleHierarchy roleHierarchy() {
@@ -74,9 +83,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return expressionHandler;
     }
 
-    @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+//    we use this method when we extend the WebSecurityConfigurerAdapter class
+//    @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
+//    @Override
+//    public AuthenticationManager authenticationManagerBean() throws Exception {
+//        return super.authenticationManagerBean();
+//    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 }
