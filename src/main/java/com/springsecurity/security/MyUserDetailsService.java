@@ -15,10 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Service("userDetailsService")
 @Transactional
@@ -29,8 +26,8 @@ public class MyUserDetailsService implements UserDetailsService {
 //    @Autowired
 //    private IUserService service;
 
-    @Autowired
-    private MessageSource messages;
+//    @Autowired
+//    private MessageSource messages;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -39,13 +36,9 @@ public class MyUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
 
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            return new org.springframework.security.core.userdetails.User(
-                    " ", " ", true, true, true, true,
-                    getAuthorities(Arrays.asList(
-                            roleRepository.findByName("ROLE_USER"))));
-        }
+        Optional<User> optionalUser = Optional.ofNullable(Optional.ofNullable(userRepository.findByEmail(email)).orElseThrow(() -> new UsernameNotFoundException(email)));
+
+        User user = optionalUser.get();
 
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(), user.getPassword(), user.isEnabled(), true, true,
